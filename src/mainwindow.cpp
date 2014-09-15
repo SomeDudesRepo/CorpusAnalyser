@@ -28,11 +28,15 @@ struct AnalysisResults
             full_count(-1),
             initial_count(-1),
             filename(),
+            x_axis(),
+            y_axis(),
             full(),
             initial() {}
     bool selected;
     int full_count, initial_count;
     std::string filename;
+    AxisX x_axis;
+    AxisY y_axis;
     std::shared_ptr<std::ofstream> full, initial;
 };
 
@@ -92,8 +96,7 @@ int CountOcurrences(const Word& w,
    return occurrences;
 }
 
-void AddHeaders(const AxisY& y_axis,
-                SelectedAnalyses& selected)
+void AddHeaders(SelectedAnalyses& selected)
 {
     for (const auto& element : selected)
     {
@@ -102,7 +105,7 @@ void AddHeaders(const AxisY& y_axis,
 
         (*element.full) << " ";
         (*element.initial) << " ";
-        for (const char& y : y_axis)
+        for (const char& y : element.y_axis)
         {
             (*element.full) << "," << y;
             (*element.initial) << "," << y;
@@ -112,13 +115,56 @@ void AddHeaders(const AxisY& y_axis,
     }
 }
 
+void AnalyseWordVsFilter(const Word& word,
+                         const Vowels& vowels,
+                         SelectedAnalyses::value_type& element)
+{
+    for (const char& x : element.x_axis)
+    {
+        (*element.full) << x;
+        (*element.initial) << x;
+        for (const char& y : element.y_axis)
+        {
+            int count(0), init_count(0);
+            std::wstring pattern(1, x);
+            pattern += L"_";
+            pattern += y;
+            for (const char& v : vowels)
+            {
+                pattern[1] = v;
+                count += CountOcurrences(word, pattern, false);
+                init_count += CountOcurrences(word, pattern, true);
+            }
+            (*element.full) << "," << count;
+            (*element.initial) << "," << init_count;
+        }
+        (*element.full) << std::endl;
+        (*element.initial) << std::endl;
+    }
+}
+
+void AnalyseOneWord(const Word& word,
+                    const Vowels& vowels,
+                    SelectedAnalyses& selected)
+{
+    for (auto& element : selected)
+    {
+        if (!element.selected)
+            continue;
+        AnalyseWordVsFilter(word, vowels, element);
+    }
+}
+
 void RunAnalysis(const Words& words,
-                 const AxisX& x_axis,
-                 const AxisY& y_axis,
                  const Vowels& vowels,
                  SelectedAnalyses& selected)
 {
-    AddHeaders(y_axis, selected);
+    AddHeaders(selected);
+
+    for (const Word& w : words)
+    {
+        AnalyseOneWord(w, vowels, selected);
+    }
 
 /*    for (const char& x : x_axis)
     {
@@ -148,38 +194,53 @@ void RunAnalysis(const Words& words,
 }
 
 void SetNewAnalysis(const Analyses& analysisType,
+                    const AxisX& xAxis,
+                    const AxisY& yAxis,
                     const std::string& name,
                     SelectedAnalyses& selected)
 {
     auto& res(selected[to_underlying(analysisType)]);
     res.selected = true;
     res.filename = name;
+    res.x_axis = xAxis;
+    res.y_axis = yAxis;
     res.full = std::make_shared<std::ofstream>(name);
     res.initial = std::make_shared<std::ofstream>(name + "_init");
 }
 
+void CheckAxesAndVowels(Ui::MainWindow& ui)
+{
+    if (ui.edt_x_axis_->text().isEmpty() ||
+        ui.edt_y_axis_->text().isEmpty() ||
+        ui.edt_vowels_->text().isEmpty())
+        throw "Empty fields!";
+}
+
 SelectedAnalyses CheckInputs(Ui::MainWindow& ui)
 {
+    CheckAxesAndVowels(ui);
+    const std::wstring x_axis(ui.edt_x_axis_->text().toStdWString()),
+                       y_axis(ui.edt_y_axis_->text().toStdWString());
     SelectedAnalyses selected(4, AnalysisResults());
     bool b(false);
     if (ui.chk_x_vs_x_->isChecked())
     {
-        SetNewAnalysis(Analyses::kXvsX, "x_vs_x", selected);
+        SetNewAnalysis(Analyses::kXvsX, x_axis, x_axis, "x_vs_x", selected);
         b = true;
     }
     if (ui.chk_x_vs_y_->isChecked())
     {
-        SetNewAnalysis(Analyses::kXvsY, "x_vs_y", selected);
+        SetNewAnalysis(Analyses::kXvsY, x_axis, y_axis, "x_vs_y", selected);
         b = true;
     }
     if (ui.chk_y_vs_x_->isChecked())
     {
-        SetNewAnalysis(Analyses::kYvsX, "y_vs_x", selected);
+        SetNewAnalysis(Analyses::kYvsX, y_axis, x_axis, "y_vs_x", selected);
         b = true;
     }
     if (ui.chk_y_vs_y_->isChecked())
     {
-        SetNewAnalysis(Analyses::kYvsY, "y_vs_y", selected);
+        SetNewAnalysis(Analyses::kYvsY, y_axis, y_axis, "y_vs_y", selected);
         b = true;
     }
     if (b)
@@ -218,10 +279,8 @@ void MainWindow::on_btn_run__clicked()
         this->statusBar()->showMessage(QString::fromStdString(message));
 
         // Run analyses
-        const std::wstring x_axis(ui->edt_x_axis_->text().toStdWString()),
-                           y_axis(ui->edt_y_axis_->text().toStdWString()),
-                           vowels(ui->edt_vowels_->text().toStdWString());
-        RunAnalysis(words, x_axis, x_axis, vowels, selected);
+        const std::wstring vowels(ui->edt_vowels_->text().toStdWString());
+        RunAnalysis(words, vowels, selected);
 //        message = "Done with x vs x.";
 //        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 //        this->statusBar()->showMessage(QString::fromStdString(message));
