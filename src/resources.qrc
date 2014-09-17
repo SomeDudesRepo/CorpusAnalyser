@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>folder-blue.ico</file>
+    </qresource>
+</RCC>

@@ -10,14 +10,78 @@
     <height>383</height>
    </rect>
   </property>
+  <property name="palette">
+   <palette>
+    <active>
+     <colorrole role="Base">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>255</green>
+        <blue>255</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Window">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>255</green>
+        <blue>255</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </active>
+    <inactive>
+     <colorrole role="Base">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>255</green>
+        <blue>255</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Window">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>255</green>
+        <blue>255</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </inactive>
+    <disabled>
+     <colorrole role="Base">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>255</green>
+        <blue>255</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Window">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>255</green>
+        <blue>255</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </disabled>
+   </palette>
+  </property>
   <property name="windowTitle">
    <string>Corpus Analyser</string>
   </property>
   <property name="autoFillBackground">
    <bool>false</bool>
   </property>
-  <widget class="QWidget" name="central_widget_">
-   <widget class="QGroupBox" name="gbx_inputs_">
+  <widget class="QWidget" name="mCentralWidget">
+   <widget class="QGroupBox" name="mGgbxInputs">
     <property name="geometry">
      <rect>
       <x>24</x>
@@ -29,7 +93,7 @@
     <property name="title">
      <string>  Inputs  </string>
     </property>
-    <widget class="QLineEdit" name="edt_vowels_">
+    <widget class="QLineEdit" name="mEdtVowels">
      <property name="geometry">
       <rect>
        <x>80</x>
@@ -42,7 +106,7 @@
       <string>aiyuoOeE°2951@§3j8w</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="edt_x_axis_">
+    <widget class="QLineEdit" name="mEdtAxisX">
      <property name="geometry">
       <rect>
        <x>80</x>
@@ -55,7 +119,7 @@
       <string>pbfvm</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="edt_corpus_">
+    <widget class="QLineEdit" name="mEdtCorpus">
      <property name="geometry">
       <rect>
        <x>80</x>
@@ -65,10 +129,10 @@
       </rect>
      </property>
      <property name="text">
-      <string>C:\Users\Dan\Desktop\Temp\CorpusAnalyser\c1.txt</string>
+      <string/>
      </property>
     </widget>
-    <widget class="QLineEdit" name="edt_y_axis_">
+    <widget class="QLineEdit" name="mEdtAxisY">
      <property name="geometry">
       <rect>
        <x>80</x>
@@ -81,7 +145,7 @@
       <string>tdszSZnlR</string>
      </property>
     </widget>
-    <widget class="QLabel" name="lbl_vowels_">
+    <widget class="QLabel" name="mLblVowels">
      <property name="geometry">
       <rect>
        <x>16</x>
@@ -94,7 +158,7 @@
       <string>Vowels</string>
      </property>
     </widget>
-    <widget class="QLabel" name="lbl_x_axis_">
+    <widget class="QLabel" name="mLblAxisX">
      <property name="geometry">
       <rect>
        <x>16</x>
@@ -107,7 +171,7 @@
       <string>X Axis</string>
      </property>
     </widget>
-    <widget class="QLabel" name="lbl_corpus_">
+    <widget class="QLabel" name="mLblCorpus">
      <property name="geometry">
       <rect>
        <x>16</x>
@@ -120,7 +184,7 @@
       <string>Corpus</string>
      </property>
     </widget>
-    <widget class="QLabel" name="lbl_y_axis_">
+    <widget class="QLabel" name="mLblAxisY">
      <property name="geometry">
       <rect>
        <x>16</x>
@@ -133,8 +197,25 @@
       <string>Y Axis</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="mBtnCorpus">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>20</y>
+       <width>25</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/folder-blue.ico</normaloff>:/folder-blue.ico</iconset>
+     </property>
+    </widget>
    </widget>
-   <widget class="QGroupBox" name="gbx_outputs_">
+   <widget class="QGroupBox" name="mGbxOutputs">
     <property name="geometry">
      <rect>
       <x>24</x>
@@ -146,7 +227,7 @@
     <property name="title">
      <string>  Outputs  </string>
     </property>
-    <widget class="QCheckBox" name="chk_y_vs_y_">
+    <widget class="QCheckBox" name="mChkYvsY">
      <property name="geometry">
       <rect>
        <x>120</x>
@@ -159,7 +240,7 @@
       <string>Y vs Y</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="chk_x_vs_x_">
+    <widget class="QCheckBox" name="mChkXvsX">
      <property name="geometry">
       <rect>
        <x>16</x>
@@ -172,7 +253,7 @@
       <string>X vs X</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="chk_y_vs_x_">
+    <widget class="QCheckBox" name="mChkYvsX">
      <property name="geometry">
       <rect>
        <x>120</x>
@@ -185,7 +266,7 @@
       <string>Y vs X</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="chk_x_vs_y_">
+    <widget class="QCheckBox" name="mChkXvsY">
      <property name="geometry">
       <rect>
        <x>16</x>
@@ -198,7 +279,7 @@
       <string>X vs Y</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btn_run_">
+    <widget class="QPushButton" name="mBtnRun">
      <property name="geometry">
       <rect>
        <x>140</x>
@@ -211,7 +292,7 @@
       <string>Run</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="edt_output_dir_">
+    <widget class="QLineEdit" name="mEdtOutputDir">
      <property name="geometry">
       <rect>
        <x>80</x>
@@ -221,10 +302,10 @@
       </rect>
      </property>
      <property name="text">
-      <string>C:\Users\Dan\Desktop\Temp\CorpusAnalyser\Results\</string>
+      <string/>
      </property>
     </widget>
-    <widget class="QLabel" name="lbl_output_dir_">
+    <widget class="QLabel" name="mLblOutputDir">
      <property name="geometry">
       <rect>
        <x>16</x>
@@ -237,9 +318,26 @@
       <string>Output Dir</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="mBtnOutputDir">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>20</y>
+       <width>25</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/folder-blue.ico</normaloff>:/folder-blue.ico</iconset>
+     </property>
+    </widget>
    </widget>
   </widget>
-  <widget class="QMenuBar" name="menu_bar_">
+  <widget class="QMenuBar" name="mMenuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -249,7 +347,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QToolBar" name="main_tool_bar_">
+  <widget class="QToolBar" name="mMainToolBar">
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -257,9 +355,11 @@
     <bool>false</bool>
    </attribute>
   </widget>
-  <widget class="QStatusBar" name="status_bar_"/>
+  <widget class="QStatusBar" name="mStatusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

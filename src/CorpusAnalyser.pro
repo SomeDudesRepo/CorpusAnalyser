@@ -23,3 +23,6 @@ OTHER_FILES += \
     corpusanalyser.ico
 
 RC_FILE = CorpusAnalyser.rc
+
+RESOURCES += \
+    resources.qrc

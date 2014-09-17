@@ -8,32 +8,32 @@
 #include <vector>
 
 #include <QDir>
+#include <QFileDialog>
+#include <QMessageBox>
 
 namespace
 {
 
 const std::string kExtension(".csv");
 
-typedef std::wstring Vowels;
-typedef std::wstring AxisX;
-typedef std::wstring AxisY;
+typedef std::string Vowels;
+typedef std::string AxisX;
+typedef std::string AxisY;
 
-typedef std::wstring Word;
+typedef std::string Pattern;
+typedef std::string Word;
 typedef std::vector<Word> Words;
 
 struct AnalysisResults
 {
     AnalysisResults()
         :   selected(false),
-            full_count(-1),
-            initial_count(-1),
             filename(),
             x_axis(),
             y_axis(),
             full(),
             initial() {}
     bool selected;
-    int full_count, initial_count;
     std::string filename;
     AxisX x_axis;
     AxisY y_axis;
@@ -58,9 +58,9 @@ typename std::underlying_type<E>::type to_underlying(E e) {
 Words GetWordsFromFile(const QString& path)
 {
     std::ifstream ifs(path.toStdString(), std::ios::binary);
-    std::wstring temp;
+    Word temp;
     char ch('\0');
-    std::vector<std::wstring> words;
+    Words words;
     while (ifs >> std::noskipws >> ch)
     {
         if (ch == ' ' || ch == EOF)
@@ -79,7 +79,7 @@ Words GetWordsFromFile(const QString& path)
 }
 
 int CountOcurrences(const Word& w,
-                    const std::wstring& pattern,
+                    const Pattern& pattern,
                     const bool& just_initial)
 {
     if (just_initial)
@@ -115,9 +115,28 @@ void AddHeaders(SelectedAnalyses& selected)
     }
 }
 
-void AnalyseWordVsFilter(const Word& word,
-                         const Vowels& vowels,
-                         SelectedAnalyses::value_type& element)
+void AnalysePatternVsWords(const Words words,
+                           const Vowels& vowels,
+                           Pattern& pattern,
+                           SelectedAnalyses::value_type& element)
+{
+    int count(0), init_count(0);
+    for (const char& v : vowels)
+    {
+        pattern[1] = v;
+        for (const auto& word : words)
+        {
+            count += CountOcurrences(word, pattern, false);
+            init_count += CountOcurrences(word, pattern, true);
+        }
+    }
+    (*element.full) << "," << count;
+    (*element.initial) << "," << init_count;
+}
+
+void AnalyseOneFilter(const Words& words,
+                      const Vowels& vowels,
+                      SelectedAnalyses::value_type& element)
 {
     for (const char& x : element.x_axis)
     {
@@ -125,33 +144,13 @@ void AnalyseWordVsFilter(const Word& word,
         (*element.initial) << x;
         for (const char& y : element.y_axis)
         {
-            int count(0), init_count(0);
-            std::wstring pattern(1, x);
-            pattern += L"_";
+            Pattern pattern(1, x);
+            pattern += "_";
             pattern += y;
-            for (const char& v : vowels)
-            {
-                pattern[1] = v;
-                count += CountOcurrences(word, pattern, false);
-                init_count += CountOcurrences(word, pattern, true);
-            }
-            (*element.full) << "," << count;
-            (*element.initial) << "," << init_count;
+            AnalysePatternVsWords(words, vowels, pattern, element);
         }
         (*element.full) << std::endl;
         (*element.initial) << std::endl;
-    }
-}
-
-void AnalyseOneWord(const Word& word,
-                    const Vowels& vowels,
-                    SelectedAnalyses& selected)
-{
-    for (auto& element : selected)
-    {
-        if (!element.selected)
-            continue;
-        AnalyseWordVsFilter(word, vowels, element);
     }
 }
 
@@ -161,36 +160,12 @@ void RunAnalysis(const Words& words,
 {
     AddHeaders(selected);
 
-    for (const Word& w : words)
+    for (auto& element : selected)
     {
-        AnalyseOneWord(w, vowels, selected);
+        if (!element.selected)
+            continue;
+        AnalyseOneFilter(words, vowels, element);
     }
-
-/*    for (const char& x : x_axis)
-    {
-        full << x;
-        initial << x;
-        for (const char& y : y_axis)
-        {
-            int count(0), init_count(0);
-            std::wstring pattern(1, x);
-            pattern += L"_";
-            pattern += y;
-            for (const char& v : vowels)
-            {
-                pattern[1] = v;
-                for (const Word& w : words)
-                {
-                    count += CountOcurrences(w, pattern, false);
-                    init_count += CountOcurrences(w, pattern, true);
-                }
-            }
-            full << "," << count;
-            initial << "," << init_count;
-        }
-        full << std::endl;
-        initial << std::endl;
-    }*/
 }
 
 void SetNewAnalysis(const Analyses& analysisType,
@@ -199,51 +174,54 @@ void SetNewAnalysis(const Analyses& analysisType,
                     const std::string& name,
                     SelectedAnalyses& selected)
 {
-    auto& res(selected[to_underlying(analysisType)]);
+    auto& res = selected[to_underlying(analysisType)];
     res.selected = true;
     res.filename = name;
     res.x_axis = xAxis;
     res.y_axis = yAxis;
-    res.full = std::make_shared<std::ofstream>(name);
-    res.initial = std::make_shared<std::ofstream>(name + "_init");
+    res.full = std::make_shared<std::ofstream>(name + kExtension);
+    res.initial = std::make_shared<std::ofstream>(name + "_init" + kExtension);
 }
 
 void CheckAxesAndVowels(Ui::MainWindow& ui)
 {
-    if (ui.edt_x_axis_->text().isEmpty() ||
-        ui.edt_y_axis_->text().isEmpty() ||
-        ui.edt_vowels_->text().isEmpty())
+    if (ui.mEdtAxisX->text().isEmpty() ||
+        ui.mEdtAxisY->text().isEmpty() ||
+        ui.mEdtVowels->text().isEmpty() ||
+        ui.mEdtCorpus->text().isEmpty() ||
+        ui.mEdtOutputDir->text().isEmpty())
         throw "Empty fields!";
 }
 
 SelectedAnalyses CheckInputs(Ui::MainWindow& ui)
 {
     CheckAxesAndVowels(ui);
-    const std::wstring x_axis(ui.edt_x_axis_->text().toStdWString()),
-                       y_axis(ui.edt_y_axis_->text().toStdWString());
+    const AxisX x_axis(ui.mEdtAxisX->text().toStdString());
+    const AxisY y_axis(ui.mEdtAxisY->text().toStdString());
+    const std::string outDir(ui.mEdtOutputDir->text().toStdString());
     SelectedAnalyses selected(4, AnalysisResults());
     bool b(false);
-    if (ui.chk_x_vs_x_->isChecked())
+    if (ui.mChkXvsX->isChecked())
     {
-        SetNewAnalysis(Analyses::kXvsX, x_axis, x_axis, "x_vs_x", selected);
+        SetNewAnalysis(Analyses::kXvsX, x_axis, x_axis, outDir + "/x_vs_x", selected);
         b = true;
     }
-    if (ui.chk_x_vs_y_->isChecked())
+    if (ui.mChkXvsY->isChecked())
     {
-        SetNewAnalysis(Analyses::kXvsY, x_axis, y_axis, "x_vs_y", selected);
+        SetNewAnalysis(Analyses::kXvsY, x_axis, y_axis, outDir + "/x_vs_y", selected);
         b = true;
     }
-    if (ui.chk_y_vs_x_->isChecked())
+    if (ui.mChkYvsX->isChecked())
     {
-        SetNewAnalysis(Analyses::kYvsX, y_axis, x_axis, "y_vs_x", selected);
+        SetNewAnalysis(Analyses::kYvsX, y_axis, x_axis, outDir + "/y_vs_x", selected);
         b = true;
     }
-    if (ui.chk_y_vs_y_->isChecked())
+    if (ui.mChkYvsY->isChecked())
     {
-        SetNewAnalysis(Analyses::kYvsY, y_axis, y_axis, "y_vs_y", selected);
+        SetNewAnalysis(Analyses::kYvsY, y_axis, y_axis, outDir + "/y_vs_y", selected);
         b = true;
     }
-    if (b)
+    if (!b)
         throw "Select at least one ";
 
     return selected;
@@ -256,7 +234,7 @@ MainWindow::MainWindow(QWidget* parent)
         ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    on_edt_corpus__editingFinished();
+    this->statusBar()->showMessage("Select at least one analysis");
 }
 
 MainWindow::~MainWindow()
@@ -264,46 +242,43 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_btn_run__clicked()
+void MainWindow::on_mBtnRun_clicked()
 {
     try
     {
-        this->statusBar()->showMessage("");
         SelectedAnalyses selected(CheckInputs(*ui));
 
         // Get strings from file
-        Words words(GetWordsFromFile(ui->edt_corpus_->text()));
-        const std::string directory(ui->edt_corpus_->text().toStdString());
-        std::string message("Words found: " + std::to_string(words.size()) +
-                            " at " + directory);
+        Words words(GetWordsFromFile(ui->mEdtCorpus->text()));
+        const std::string directory(ui->mEdtCorpus->text().toStdString());
+        const std::string message("Words found: " + std::to_string(words.size()) +
+                                  " at " + directory);
         this->statusBar()->showMessage(QString::fromStdString(message));
 
         // Run analyses
-        const std::wstring vowels(ui->edt_vowels_->text().toStdWString());
+        const Vowels vowels(ui->mEdtVowels->text().toStdString());
         RunAnalysis(words, vowels, selected);
-//        message = "Done with x vs x.";
-//        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//        this->statusBar()->showMessage(QString::fromStdString(message));
-//        RunAnalysis(words, x_axis, y_axis, vowels, "x_vs_y", directory);
-//        message = "Done with x vs y.";
-//        this->statusBar()->showMessage(QString::fromStdString(message));
-//        RunAnalysis(words, y_axis, x_axis, vowels, "y_vs_x", directory);
-//        message = "Done with y vs x.";
-//        this->statusBar()->showMessage(QString::fromStdString(message));
-//        RunAnalysis(words, y_axis, y_axis, vowels, "y_vs_y", directory);
-//        message = "Done with y vs y.";
-//        this->statusBar()->showMessage(QString::fromStdString(message));
     }
     catch(...)
     {
-        this->statusBar()->showMessage("Failed!");
+        QMessageBox::critical(this, tr("Failure"), tr("There has been some error!"));
     }
 }
 
-void MainWindow::on_edt_corpus__editingFinished()
+void MainWindow::on_mBtnCorpus_clicked()
 {
-    QDir dir(ui->edt_corpus_->text());
-    dir.cdUp();
-    const std::string directory(dir.path().toStdString() + "/Results/");
-    ui->edt_output_dir_->setText(QString::fromStdString(directory));
+    auto corpus = QFileDialog::getOpenFileName(
+                      this,
+                      tr("Select a corpus..."),
+                      tr("D:\\Learn\\Github\\CorpusAnalyser\\test_files"));
+    ui->mEdtCorpus->setText(corpus);
+}
+
+void MainWindow::on_mBtnOutputDir_clicked()
+{
+    auto outputDir = QFileDialog::getExistingDirectory(
+                         this,
+                         tr("Select an output directory..."),
+                         tr("D:\\Learn\\Github\\CorpusAnalyser\\test_files"));
+    ui->mEdtOutputDir->setText(outputDir);
 }

@@ -14,8 +14,12 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_btn_run__clicked();
-    void on_edt_corpus__editingFinished();
+
+    void on_mBtnRun_clicked();
+
+    void on_mBtnCorpus_clicked();
+
+    void on_mBtnOutputDir_clicked();
 
 private:
     Ui::MainWindow* ui;
