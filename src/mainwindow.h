@@ -1,7 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <memory>
+
 #include <QMainWindow>
+#include <QMovie>
 
 namespace Ui { class MainWindow; }
 
@@ -12,6 +15,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget* parent = 0);
     ~MainWindow();
+    void UpdateMovie();
 
 private slots:
 
@@ -21,8 +25,11 @@ private slots:
 
     void on_mBtnOutputDir_clicked();
 
+    void on_action_Exit_triggered();
+
 private:
     Ui::MainWindow* ui;
+    std::unique_ptr<QMovie> mQMovie;
 };
 
 #endif // MAINWINDOW_H

@@ -1,8 +1,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <chrono>
+#include <ctime>
 #include <fstream>
-#include <memory>
+#include <future>
+#include <iomanip>
+#include <mutex>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -14,6 +19,31 @@
 namespace
 {
 
+typedef std::string DateAndTime;
+DateAndTime NowDateAndTime()
+{
+    auto now = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+    auto fractional_seconds = ms.count() % 1000;
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X.") << fractional_seconds;
+    return DateAndTime(ss.str());
+}
+
+typedef std::string LogMessage;
+void Log(const LogMessage& msg)
+{
+    static std::ofstream log("D:\\Learn\\Github\\CorpusAnalyser\\test_files\\log.txt");
+    static std::mutex mutex;
+
+    {
+        std::lock_guard<std::mutex> loch(mutex);
+        const auto now = NowDateAndTime();
+        log << std::this_thread::get_id() << " - " << now << ": " << msg << std::endl;
+    }
+}
+
 const std::string kExtension(".csv");
 
 typedef std::string Vowels;
@@ -23,6 +53,8 @@ typedef std::string AxisY;
 typedef std::string Pattern;
 typedef std::string Word;
 typedef std::vector<Word> Words;
+
+typedef std::string FilterName;
 
 struct AnalysisResults
 {
@@ -49,6 +81,22 @@ enum class Analyses : int
     kYvsX,
     kYvsY
 };
+typedef std::map<Analyses, FilterName> AnalysesMap;
+
+std::once_flag flag;
+const AnalysesMap& GetAnalysesMap()
+{
+    static AnalysesMap map;
+    std::call_once(flag,
+                   []()
+                   {
+                       map.insert(std::make_pair(Analyses::kXvsX, "X vs X"));
+                       map.insert(std::make_pair(Analyses::kXvsY, "X vs Y"));
+                       map.insert(std::make_pair(Analyses::kYvsX, "Y vs X"));
+                       map.insert(std::make_pair(Analyses::kYvsY, "Y vs Y"));
+                   });
+    return map;
+}
 
 template <typename E>
 typename std::underlying_type<E>::type to_underlying(E e) {
@@ -82,6 +130,7 @@ int CountOcurrences(const Word& w,
                     const Pattern& pattern,
                     const bool& just_initial)
 {
+//    Log("CountOcurrences " + pattern);
     if (just_initial)
         return w.find(pattern) == 0U ? 1 : 0;
 
@@ -120,6 +169,7 @@ void AnalysePatternVsWords(const Words words,
                            Pattern& pattern,
                            SelectedAnalyses::value_type& element)
 {
+    Log("AnalyseOneFilter " + pattern);
     int count(0), init_count(0);
     for (const char& v : vowels)
     {
@@ -138,6 +188,7 @@ void AnalyseOneFilter(const Words& words,
                       const Vowels& vowels,
                       SelectedAnalyses::value_type& element)
 {
+    Log("AnalyseOneFilter " + element.filename);
     for (const char& x : element.x_axis)
     {
         (*element.full) << x;
@@ -165,6 +216,7 @@ void RunAnalysis(const Words& words,
         if (!element.selected)
             continue;
         AnalyseOneFilter(words, vowels, element);
+        Log("Done " + element.filename);
     }
 }
 
@@ -200,30 +252,28 @@ SelectedAnalyses CheckInputs(Ui::MainWindow& ui)
     const AxisY y_axis(ui.mEdtAxisY->text().toStdString());
     const std::string outDir(ui.mEdtOutputDir->text().toStdString());
     SelectedAnalyses selected(4, AnalysisResults());
-    bool b(false);
-    if (ui.mChkXvsX->isChecked())
-    {
-        SetNewAnalysis(Analyses::kXvsX, x_axis, x_axis, outDir + "/x_vs_x", selected);
-        b = true;
-    }
-    if (ui.mChkXvsY->isChecked())
-    {
-        SetNewAnalysis(Analyses::kXvsY, x_axis, y_axis, outDir + "/x_vs_y", selected);
-        b = true;
-    }
-    if (ui.mChkYvsX->isChecked())
-    {
-        SetNewAnalysis(Analyses::kYvsX, y_axis, x_axis, outDir + "/y_vs_x", selected);
-        b = true;
-    }
-    if (ui.mChkYvsY->isChecked())
-    {
-        SetNewAnalysis(Analyses::kYvsY, y_axis, y_axis, outDir + "/y_vs_y", selected);
-        b = true;
-    }
-    if (!b)
-        throw "Select at least one ";
+    auto selection = ui.mLstFilters->selectedItems();
+    if (selection.empty())
+        throw "Select at least one filter!";
 
+    for (const auto& item : selection)
+    {
+        switch (item->type())
+        {
+            case Analyses::kXvsX:
+                SetNewAnalysis(Analyses::kXvsX, x_axis, x_axis, outDir + "/x_vs_x", selected);
+                break;
+            case Analyses::kXvsY:
+                SetNewAnalysis(Analyses::kXvsY, x_axis, y_axis, outDir + "/x_vs_y", selected);
+                break;
+            case Analyses::kYvsX:
+                SetNewAnalysis(Analyses::kYvsX, y_axis, x_axis, outDir + "/y_vs_x", selected);
+                break;
+            case Analyses::kYvsY:
+                SetNewAnalysis(Analyses::kYvsY, y_axis, y_axis, outDir + "/y_vs_y", selected);
+                break;
+        }
+    }
     return selected;
 }
 
@@ -231,38 +281,79 @@ SelectedAnalyses CheckInputs(Ui::MainWindow& ui)
 
 MainWindow::MainWindow(QWidget* parent)
     :   QMainWindow(parent),
-        ui(new Ui::MainWindow)
+        ui(new Ui::MainWindow),
+        mQMovie(std::make_unique<QMovie>(":/images/ajax-loader.gif"))
 {
     ui->setupUi(this);
     this->statusBar()->showMessage("Select at least one analysis");
+    const AnalysesMap& map(GetAnalysesMap());
+    for (const auto& item : map)
+    {
+        ui->mLstFilters->addItem(
+            new QListWidgetItem(QString::fromStdString(item.second),
+                                ui->mLstFilters,
+                                to_underlying(item.first)));
+    }
+    setWindowFlags(Qt::Window |
+                   Qt::WindowTitleHint |
+                   Qt::CustomizeWindowHint |
+                   Qt::WindowMinimizeButtonHint |
+                   Qt::WindowCloseButtonHint);
+    ui->mLblGif->setMovie(mQMovie.get());
+    ui->mLblGif->hide();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    mQMovie->stop();
 }
 
 void MainWindow::on_mBtnRun_clicked()
 {
     try
     {
-        SelectedAnalyses selected(CheckInputs(*ui));
+        ui->mLblGif->show();
+        mQMovie->start();
+        ui->mLblGif->repaint();
 
-        // Get strings from file
-        Words words(GetWordsFromFile(ui->mEdtCorpus->text()));
-        const std::string directory(ui->mEdtCorpus->text().toStdString());
-        const std::string message("Words found: " + std::to_string(words.size()) +
-                                  " at " + directory);
-        this->statusBar()->showMessage(QString::fromStdString(message));
+        auto func = std::bind(&MainWindow::UpdateMovie, this);
+        std::async(std::launch::async,
+                   [this, func] ()
+                   {
+                       auto selected(CheckInputs(*ui));
+                       // Get strings from file
+                       Words words(GetWordsFromFile(ui->mEdtCorpus->text()));
+//                       const std::string message("Words found: " + std::to_string(words.size()));
+//                       this->statusBar()->showMessage(QString::fromStdString(message));
 
-        // Run analyses
-        const Vowels vowels(ui->mEdtVowels->text().toStdString());
-        RunAnalysis(words, vowels, selected);
+                       // Run analyses
+                       const Vowels vowels(ui->mEdtVowels->text().toStdString());
+                       RunAnalysis(words, vowels, selected);
+                       func();
+                   });
+//        Log("M 22222");
+//        UpdateMovie(std::cref(run));
+//        Log("M 33333");
+//        handle2.get();
+//        Log("M 44444");
+//        mQMovie->stop();
+//        ui->mLblGif->hide();
+//        ui->mLblGif->repaint();
+//        this->statusBar()->showMessage(QString::fromStdString("Finished!"));
     }
     catch(...)
     {
         QMessageBox::critical(this, tr("Failure"), tr("There has been some error!"));
     }
+}
+
+void  MainWindow::UpdateMovie()
+{
+    mQMovie->stop();
+    ui->mLblGif->hide();
+    ui->mLblGif->repaint();
+    this->statusBar()->showMessage(QString::fromStdString("Finished!"));
 }
 
 void MainWindow::on_mBtnCorpus_clicked()
@@ -281,4 +372,9 @@ void MainWindow::on_mBtnOutputDir_clicked()
                          tr("Select an output directory..."),
                          tr("D:\\Learn\\Github\\CorpusAnalyser\\test_files"));
     ui->mEdtOutputDir->setText(outputDir);
+}
+
+void MainWindow::on_action_Exit_triggered()
+{
+    QApplication::quit();
 }
