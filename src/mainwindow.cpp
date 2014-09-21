@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "runner.h"
 #include "ui_mainwindow.h"
 
 #include <chrono>
@@ -34,7 +35,7 @@ DateAndTime NowDateAndTime()
 typedef std::string LogMessage;
 void Log(const LogMessage& msg)
 {
-    static std::ofstream log("D:\\Learn\\Github\\CorpusAnalyser\\test_files\\log.txt");
+    static std::ofstream log("C:\\Users\\Dan\\Documents\\GitHub\\CorpusAnalyser\\test_files\\log.txt");
     static std::mutex mutex;
 
     {
@@ -73,7 +74,6 @@ struct AnalysisResults
 };
 
 typedef std::vector<AnalysisResults> SelectedAnalyses;
-
 enum class Analyses : int
 {
     kXvsX = 0,
@@ -282,7 +282,7 @@ SelectedAnalyses CheckInputs(Ui::MainWindow& ui)
 MainWindow::MainWindow(QWidget* parent)
     :   QMainWindow(parent),
         ui(new Ui::MainWindow),
-        mQMovie(std::make_unique<QMovie>(":/images/ajax-loader.gif"))
+        mQMovie(new QMovie(":/images/ajax-loader.gif"))
 {
     ui->setupUi(this);
     this->statusBar()->showMessage("Select at least one analysis");
@@ -313,6 +313,7 @@ void MainWindow::on_mBtnRun_clicked()
 {
     try
     {
+        ui->mBtnRun->setEnabled(false);
         ui->mLblGif->show();
         mQMovie->start();
         ui->mLblGif->repaint();
@@ -321,26 +322,23 @@ void MainWindow::on_mBtnRun_clicked()
         std::async(std::launch::async,
                    [this, func] ()
                    {
-                       auto selected(CheckInputs(*ui));
-                       // Get strings from file
-                       Words words(GetWordsFromFile(ui->mEdtCorpus->text()));
-//                       const std::string message("Words found: " + std::to_string(words.size()));
-//                       this->statusBar()->showMessage(QString::fromStdString(message));
+                       try
+                       {
+                           auto selected(CheckInputs(*ui));
+                           // Get strings from file
+                           Words words(GetWordsFromFile(ui->mEdtCorpus->text()));
 
-                       // Run analyses
-                       const Vowels vowels(ui->mEdtVowels->text().toStdString());
-                       RunAnalysis(words, vowels, selected);
-                       func();
+                           // Run analyses
+                           const Vowels vowels(ui->mEdtVowels->text().toStdString());
+                           std::unique_ptr<Runner> runner(new Runner);
+                           connect(runner.get(), SIGNAL(done()), this, SLOT(UpdateMovie()));
+                           RunAnalysis(words, vowels, selected);
+                           runner->Completed();
+                           std::this_thread::sleep_for(std::chrono::seconds(2));
+                           Log("Analysis done!");
+                       }
+                       catch(...) { Log("Failure in analysis"); }
                    });
-//        Log("M 22222");
-//        UpdateMovie(std::cref(run));
-//        Log("M 33333");
-//        handle2.get();
-//        Log("M 44444");
-//        mQMovie->stop();
-//        ui->mLblGif->hide();
-//        ui->mLblGif->repaint();
-//        this->statusBar()->showMessage(QString::fromStdString("Finished!"));
     }
     catch(...)
     {
@@ -350,6 +348,7 @@ void MainWindow::on_mBtnRun_clicked()
 
 void  MainWindow::UpdateMovie()
 {
+    Log("UpdateMovie");
     mQMovie->stop();
     ui->mLblGif->hide();
     ui->mLblGif->repaint();
@@ -361,7 +360,7 @@ void MainWindow::on_mBtnCorpus_clicked()
     auto corpus = QFileDialog::getOpenFileName(
                       this,
                       tr("Select a corpus..."),
-                      tr("D:\\Learn\\Github\\CorpusAnalyser\\test_files"));
+                      tr("C:\\Users\\Dan\\Documents\\GitHub\\CorpusAnalyser\\test_files\\"));
     ui->mEdtCorpus->setText(corpus);
 }
 
@@ -370,7 +369,7 @@ void MainWindow::on_mBtnOutputDir_clicked()
     auto outputDir = QFileDialog::getExistingDirectory(
                          this,
                          tr("Select an output directory..."),
-                         tr("D:\\Learn\\Github\\CorpusAnalyser\\test_files"));
+                         tr("C:\\Users\\Dan\\Documents\\GitHub\\CorpusAnalyser\\test_files\\"));
     ui->mEdtOutputDir->setText(outputDir);
 }
 
