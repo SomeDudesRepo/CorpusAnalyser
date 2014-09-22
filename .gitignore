@@ -214,5 +214,10 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 
-#Qt
+#############
+# Qt
+#############
+
 *.user
+*.user.*
+test_files/
