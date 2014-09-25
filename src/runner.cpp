@@ -5,4 +5,7 @@ Runner::Runner(QObject *parent) :
 {
 }
 
-void Runner::Completed() { emit done(); }
+void Runner::Update(const int& updateType, const QString &message)
+{
+    emit update(updateType, message);
+}

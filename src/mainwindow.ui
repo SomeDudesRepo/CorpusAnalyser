@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>290</width>
-    <height>386</height>
+    <height>409</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -140,6 +140,9 @@
      <property name="text">
       <string/>
      </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
     </widget>
     <widget class="QLineEdit" name="mEdtAxisY">
      <property name="geometry">
@@ -230,7 +233,7 @@
       <x>24</x>
       <y>180</y>
       <width>231</width>
-      <height>161</height>
+      <height>181</height>
      </rect>
     </property>
     <property name="title">
@@ -239,9 +242,9 @@
     <widget class="QPushButton" name="mBtnRun">
      <property name="geometry">
       <rect>
-       <x>150</x>
+       <x>174</x>
        <y>50</y>
-       <width>75</width>
+       <width>51</width>
        <height>23</height>
       </rect>
      </property>
@@ -260,6 +263,9 @@
      </property>
      <property name="text">
       <string/>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
      </property>
     </widget>
     <widget class="QLabel" name="mLblOutputDir">
@@ -295,8 +301,8 @@
     <widget class="QListWidget" name="mLstFilters">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>50</y>
+       <x>16</x>
+       <y>52</y>
        <width>121</width>
        <height>91</height>
       </rect>
@@ -324,6 +330,19 @@
       <number>0</number>
      </property>
     </widget>
+    <widget class="QCheckBox" name="mChkInitial">
+     <property name="geometry">
+      <rect>
+       <x>16</x>
+       <y>150</y>
+       <width>70</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Do initial</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="mMenuBar">
@@ -335,18 +354,39 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuExit">
+   <widget class="QMenu" name="mMenuFile">
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="action_Exit"/>
+    <addaction name="mActResultFolder"/>
+    <addaction name="mActExit"/>
    </widget>
-   <addaction name="menuExit"/>
+   <widget class="QMenu" name="mMenuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="mActAbout"/>
+   </widget>
+   <addaction name="mMenuFile"/>
+   <addaction name="mMenuHelp"/>
   </widget>
   <widget class="QStatusBar" name="mStatusBar"/>
-  <action name="action_Exit">
+  <action name="mActExit">
    <property name="text">
     <string>&amp;Exit</string>
+   </property>
+  </action>
+  <action name="mActResultFolder">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Result Folder</string>
+   </property>
+  </action>
+  <action name="mActAbout">
+   <property name="text">
+    <string>&amp;About</string>
    </property>
   </action>
  </widget>

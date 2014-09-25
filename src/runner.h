@@ -8,10 +8,10 @@ class Runner : public QObject
     Q_OBJECT
 public:
     explicit Runner(QObject *parent = 0);
-    void Completed();
+    void Update(const int& updateType, const QString& message);
 
 signals:
-    void done();
+    void update(const int& updateType, const QString& message);
 
 public slots:
 

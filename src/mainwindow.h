@@ -18,7 +18,7 @@ public:
     ~MainWindow();
 
 public slots:
-    void UpdateMovie();
+    void UpdateUi(const int& updateType, const QString &message);
 
 private slots:
 
@@ -28,7 +28,11 @@ private slots:
 
     void on_mBtnOutputDir_clicked();
 
-    void on_action_Exit_triggered();
+    void on_mActExit_triggered();
+
+    void on_mActResultFolder_triggered();
+
+    void on_mActAbout_triggered();
 
 private:
     Ui::MainWindow* ui;

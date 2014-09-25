@@ -1,0 +1,6 @@
+Corpus Analyser
+---------------
+
+V 0.1.0
+-------
+- Final work to get it working with thread and options for axes and initial count as well.
