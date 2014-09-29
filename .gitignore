@@ -217,8 +217,10 @@ pip-log.txt
 #############
 # Qt
 #############
-
-*.user
 *.user.*
+
+#############
+# Project
+#############
 test_files/
-src/CorpusAnalyser.pro.user
+
