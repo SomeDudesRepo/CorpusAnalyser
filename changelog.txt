@@ -1,6 +1,10 @@
 Corpus Analyser
 ---------------
 
+V 0.2.0
+-------
+- Separated logic into units. No functional change.
+
 V 0.1.0
 -------
 - Final work to get it working with thread and options for axes and initial count as well.

@@ -221,3 +221,4 @@ pip-log.txt
 *.user
 *.user.*
 test_files/
+src/CorpusAnalyser.pro.user

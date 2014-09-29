@@ -3,6 +3,9 @@
 
 #include <QObject>
 
+namespace CorpusAnalyser
+{
+
 class Runner : public QObject
 {
     Q_OBJECT
@@ -16,5 +19,7 @@ signals:
 public slots:
 
 };
+
+}  // namespace CorpusAnalyser
 
 #endif // RUNNER_H

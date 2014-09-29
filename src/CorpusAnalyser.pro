@@ -14,10 +14,19 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    runner.cpp
+    runner.cpp \
+    wordextractror.cpp \
+    corpusanalysis.cpp \
+    log.cpp \
+    analyses.cpp
 
 HEADERS  += mainwindow.h \
-    runner.h
+    runner.h \
+    wordextractor.h \
+    corpusanalysis.h \
+    types.h \
+    log.h \
+    analyses.h
 
 FORMS    += mainwindow.ui
 
