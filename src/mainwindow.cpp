@@ -8,6 +8,7 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QUrl>
 
 #include "corpusanalysis.h"
 #include "log.h"

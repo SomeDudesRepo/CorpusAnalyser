@@ -1,6 +1,10 @@
 Corpus Analyser
 ---------------
 
+V 0.2.1
+-------
+- Added QUrl include for compilation.
+
 V 0.2.0
 -------
 - Separated logic into units. No functional change.

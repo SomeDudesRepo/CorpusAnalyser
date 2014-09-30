@@ -19,7 +19,7 @@ typedef std::string AxisY;
 typedef std::string FilterName;
 
 // constants
-const std::string kVersion("0.2.0");
+const std::string kVersion("0.2.1");
 const std::string kResultExtension(".csv");
 const bool kDoInitial(true);
 
