@@ -25,7 +25,7 @@ void CheckAxesAndVowels(Ui::MainWindow& ui)
         ui.mEdtVowels->text().isEmpty() ||
         ui.mEdtCorpus->text().isEmpty() ||
         ui.mEdtOutputDir->text().isEmpty())
-        throw "Empty fields!";
+        throw std::string("Empty fields!");
 }
 
 CorpusAnalyser::SelectedAnalyses CheckInputs(Ui::MainWindow& ui)
@@ -38,7 +38,7 @@ CorpusAnalyser::SelectedAnalyses CheckInputs(Ui::MainWindow& ui)
     auto selection = ui.mLstFilters->selectedItems();
     const auto doInitial = ui.mChkInitial->isChecked();
     if (selection.empty())
-        throw "Select at least one filter!";
+        throw std::string("Select at least one filter!");
 
     for (const auto& item : selection)
     {
@@ -120,9 +120,13 @@ void MainWindow::on_mBtnRun_clicked()
                        CorpusAnalyser::RunAnalysis(words, vowels, selected, *runner);
                        runner->Update(2, QString::fromStdString("Finished!"));
                    }
+                   catch(const std::string& s)
+                   {
+                       runner->Update(3, QString::fromStdString(s));
+                   }
                    catch(...)
                    {
-                       runner->Update(3, QString::fromStdString("Failure in analysis"));
+                       runner->Update(3, QString::fromStdString("Unknown failure in analysis"));
                    }
                });
 }

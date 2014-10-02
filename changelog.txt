@@ -1,6 +1,10 @@
 Corpus Analyser
 ---------------
 
+V 0.2.2
+-------
+- Using string exceptions to show errors on taskbar.
+
 V 0.2.1
 -------
 - Added QUrl include for compilation.

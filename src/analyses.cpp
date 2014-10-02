@@ -37,15 +37,15 @@ void SetNewAnalysis(const Analyses& analysisType,
                     const bool& doInitial,
                     SelectedAnalyses& selected)
 {
-    auto& res = selected[CorpusAnalyser::ToUnderlying(analysisType)];
+    auto& res = selected[ToUnderlying(analysisType)];
     res.selected = true;
     res.filename = name;
     res.x_axis = xAxis;
     res.y_axis = yAxis;
     res.doInitial = doInitial;
-    res.full = std::make_shared<std::ofstream>(name + CorpusAnalyser::kResultExtension);
+    res.full = std::make_shared<std::ofstream>(name + kResultExtension);
     if (doInitial)
-        res.initial = std::make_shared<std::ofstream>(name + "_init" + CorpusAnalyser::kResultExtension);
+        res.initial = std::make_shared<std::ofstream>(name + kInitSuffix + kResultExtension);
 }
 
 }  // namespace CorpusAnalyser

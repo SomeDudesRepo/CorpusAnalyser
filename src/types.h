@@ -19,8 +19,9 @@ typedef std::string AxisY;
 typedef std::string FilterName;
 
 // constants
-const std::string kVersion("0.2.1");
+const std::string kVersion("0.2.2");
 const std::string kResultExtension(".csv");
+const std::string kInitSuffix("_init");
 const bool kDoInitial(true);
 
 // converters
